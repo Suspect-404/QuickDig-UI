@@ -3,53 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickDig UI 🚀</title>
+    <title>QuickDig UI</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            text-align: center;
-            padding: 30px 15px;
-            margin: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #1e1e24;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; text-align: center; padding: 30px 15px; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: #1e1e24; padding: 25px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
         h1 { color: #4CAF50; margin-bottom: 5px; }
         p.subtitle { color: #aaa; margin-top: 0; }
-        .input-group { margin-bottom: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        input {
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #2b2b36;
-            color: white;
-            font-size: 15px;
-        }
-        button {
-            padding: 12px 20px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .input-group { margin-bottom: 25px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        input { padding: 12px; border-radius: 6px; border: 1px solid #444; background: #2b2b36; color: white; font-size: 15px; }
+        button { padding: 12px 20px; background: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: bold; }
         button:hover { background: #45a049; }
-        .live-toggle { margin-top: 10px; font-size: 14px; color: #bbb; }
         
-        #results { margin-top: 25px; text-align: left; display: none; }
-        .server-info { background: #2b2b36; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4CAF50; }
+        #results { margin-top: 15px; text-align: left; display: none; }
+        .server-info { background: #2b2b36; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50; }
+        
+        .teams-container { display: flex; gap: 20px; justify-content: space-between; flex-wrap: wrap; }
+        .team-box { flex: 1; min-width: 300px; background: #2b2b36; padding: 15px; border-radius: 8px; }
+        .team-box h3 { text-align: center; margin-top: 0; color: #4CAF50; border-bottom: 2px solid #444; padding-bottom: 10px; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #333; padding: 10px; text-align: center; }
-        th { background-color: #252530; color: #4CAF50; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 14px; }
+        th { background-color: #252530; color: #fff; }
         tr:nth-child(even) { background-color: #1a1a22; }
         .error-box { background: #8b0000; color: white; padding: 10px; border-radius: 6px; display: none; margin-top: 15px; text-align: center; }
     </style>
@@ -57,108 +31,134 @@
 <body>
 
     <div class="container">
-        <h1>QuickDig UI 🚀</h1>
+        <h1>QuickDig UI</h1>
         <p class="subtitle">Fast, Login-Free Game Server Status</p>
         
         <div class="input-group">
-            <input type="text" id="serverIp" placeholder="Server IP (e.g. 149.202.89.241)" required>
+            <input type="text" id="serverIp" placeholder="Server IP (e.g. 144.22.214.56)" required>
             <input type="number" id="serverPort" placeholder="Port (e.g. 29900)" required>
-            <button onclick="fetchData()">Search 🔍</button>
+            <button onclick="startFetching()">Search</button>
         </div>
 
-        <div class="live-toggle">
-            <label>
-                <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()"> Auto-Refresh (Every 10s) 🔄
-            </label>
-        </div>
-
-        <div id="loading" style="display:none; color: #aaa; margin-top: 15px;">Fetching server data... ⏳</div>
+        <div id="loading" style="display:none; color: #aaa; margin-top: 15px;">Fetching server data...</div>
         <div id="error" class="error-box"></div>
 
         <div id="results">
             <div class="server-info">
                 <h2 id="serverName" style="margin:0 0 10px 0; color:#fff;">-</h2>
-                <p style="margin:5px 0;">🗺️ <b>Map:</b> <span id="serverMap">-</span></p>
-                <p style="margin:5px 0;">👥 <b>Players:</b> <span id="playerCount">0/0</span></p>
+                <p style="margin:5px 0;"><b>Map:</b> <span id="serverMap">-</span></p>
+                <p style="margin:5px 0;"><b>Mode:</b> <span id="serverMode">-</span></p>
+                <p style="margin:5px 0;"><b>Players:</b> <span id="playerCount">0/0</span></p>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Player Name</th>
-                        <th>Score</th>
-                        <th>Ping</th>
-                        <th>Team</th>
-                    </tr>
-                </thead>
-                <tbody id="playersTable">
-                </tbody>
-            </table>
+            <div class="teams-container">
+                <div class="team-box">
+                    <h3 id="team1Name">Team 1</h3>
+                    <table>
+                        <thead><tr><th>Player</th><th>Score</th><th>Ping</th></tr></thead>
+                        <tbody id="team1Table"></tbody>
+                    </table>
+                </div>
+                <div class="team-box">
+                    <h3 id="team2Name">Team 2</h3>
+                    <table>
+                        <thead><tr><th>Player</th><th>Score</th><th>Ping</th></tr></thead>
+                        <tbody id="team2Table"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        let timer = null;
+        let fetchInterval = null;
 
-        async function fetchData() {
+        function startFetching() {
             let ip = document.getElementById("serverIp").value.trim();
             let port = document.getElementById("serverPort").value.trim();
 
             if(!ip || !port) {
-                showError("Please enter both IP and Port!");
+                showError("Please enter both IP and Port.");
                 return;
             }
 
-            hideError();
+            if (fetchInterval) clearInterval(fetchInterval);
+            
             document.getElementById("loading").style.display = "block";
+            document.getElementById("results").style.display = "none";
+            hideError();
 
+            fetchData(ip, port);
+            
+            
+            fetchInterval = setInterval(() => fetchData(ip, port, true), 10000);
+        }
+
+        async function fetchData(ip, port, isSilent = false) {
             try {
                 let response = await fetch(`/api/status?ip=${ip}&port=${port}`);
                 let data = await response.json();
 
-                document.getElementById("loading").style.display = "none";
+                if (!isSilent) document.getElementById("loading").style.display = "none";
 
                 if(!data.success) {
                     showError(data.error);
+                    if (fetchInterval) clearInterval(fetchInterval);
                     return;
                 }
 
                 document.getElementById("serverName").innerText = data.name;
                 document.getElementById("serverMap").innerText = data.map;
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
+                
+                let mode = (data.raw && data.raw.gametype) ? data.raw.gametype : "Unknown";
+                document.getElementById("serverMode").innerText = mode;
 
-                let tbody = document.getElementById("playersTable");
-                tbody.innerHTML = "";
+                let t1Name = (data.raw && data.raw.bf2_team1) ? data.raw.bf2_team1 : "Team 1";
+                let t2Name = (data.raw && data.raw.bf2_team2) ? data.raw.bf2_team2 : "Team 2";
+                document.getElementById("team1Name").innerText = t1Name;
+                document.getElementById("team2Name").innerText = t2Name;
 
-                if(data.players.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4'>No players currently online</td></tr>";
-                } else {
-                    data.players.forEach(p => {
-                        let row = `<tr>
-                            <td>${p.name || 'Unnamed'}</td>
-                            <td>${p.raw?.score ?? p.score ?? 0}</td>
-                            <td>${p.raw?.ping ?? p.ping ?? 0} ms</td>
-                            <td>Team ${p.raw?.team ?? '-'}</td>
-                        </tr>`;
-                        tbody.innerHTML += row;
-                    });
+                let t1Body = document.getElementById("team1Table");
+                let t2Body = document.getElementById("team2Table");
+                t1Body.innerHTML = "";
+                t2Body.innerHTML = "";
+
+                let team1Players = [];
+                let team2Players = [];
+
+                data.players.forEach(p => {
+                    let team = p.raw?.team ?? p.team ?? 1;
+                    if (team == 1) team1Players.push(p);
+                    else team2Players.push(p);
+                });
+
+                function renderTable(players, tbody) {
+                    if(players.length === 0) {
+                        tbody.innerHTML = "<tr><td colspan='3'>No players</td></tr>";
+                    } else {
+                        players.sort((a, b) => (b.raw?.score ?? b.score ?? 0) - (a.raw?.score ?? a.score ?? 0));
+                        players.forEach(p => {
+                            let row = `<tr>
+                                <td>${p.name || 'Unnamed'}</td>
+                                <td>${p.raw?.score ?? p.score ?? 0}</td>
+                                <td>${p.raw?.ping ?? p.ping ?? 0} ms</td>
+                            </tr>`;
+                            tbody.innerHTML += row;
+                        });
+                    }
                 }
+
+                renderTable(team1Players, t1Body);
+                renderTable(team2Players, t2Body);
 
                 document.getElementById("results").style.display = "block";
 
             } catch (err) {
-                document.getElementById("loading").style.display = "none";
-                showError("Failed to connect to the backend server.");
-            }
-        }
-
-        function toggleAutoRefresh() {
-            let isChecked = document.getElementById("autoRefresh").checked;
-            if(isChecked) {
-                fetchData(); 
-                timer = setInterval(fetchData, 10000); 
-            } else {
-                clearInterval(timer);
+                if (!isSilent) {
+                    document.getElementById("loading").style.display = "none";
+                    showError("Failed to connect to the backend server.");
+                }
             }
         }
 
@@ -173,6 +173,5 @@
             document.getElementById("error").style.display = "none";
         }
     </script>
-
 </body>
 </html>
