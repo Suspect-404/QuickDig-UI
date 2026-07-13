@@ -6,13 +6,9 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for all routes
 app.use(cors());
-
-// Serve static files (like index.html) from the current directory
 app.use(express.static(path.join(__dirname, './')));
 
-// API endpoint to fetch server status
 app.get('/api/status', async (req, res) => {
     const { ip, port, game } = req.query;
 
@@ -21,24 +17,22 @@ app.get('/api/status', async (req, res) => {
     }
 
     try {
-        // Query the game server using GameDig
         const state = await GameDig.query({
-            type: game || 'battlefield2', // Default to PR / BF2
+            type: game || 'battlefield2',
             host: ip,
             port: parseInt(port)
         });
 
-        // Return structured data to the frontend
         res.json({
             success: true,
             name: state.name,
             map: state.map,
             numplayers: state.players.length,
             maxplayers: state.maxplayers,
-            players: state.players
+            players: state.players,
+            raw: state.raw 
         });
     } catch (error) {
-        // Handle offline servers or invalid IP/Port
         res.status(500).json({ 
             success: false, 
             error: 'Failed to connect to the server. Please check the IP and Port.' 
