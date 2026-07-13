@@ -15,7 +15,8 @@
         button:hover { background: #45a049; }
         
         #results { margin-top: 15px; text-align: left; display: none; }
-        .server-info { background: #2b2b36; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50; }
+        .server-info { background: #2b2b36; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50; display: flex; justify-content: space-between; flex-wrap: wrap;}
+        .info-col { flex: 1; min-width: 200px; }
         
         .teams-container { display: flex; gap: 20px; justify-content: space-between; flex-wrap: wrap; }
         .team-box { flex: 1; min-width: 300px; background: #2b2b36; padding: 15px; border-radius: 8px; }
@@ -35,8 +36,8 @@
         <p class="subtitle">Fast, Login-Free Game Server Status</p>
         
         <div class="input-group">
-            <input type="text" id="serverIp" placeholder="Server IP (e.g. 144.22.214.56)" required>
-            <input type="number" id="serverPort" placeholder="Port (e.g. 29900)" required>
+            <input type="text" id="serverIp" placeholder="Server IP" required>
+            <input type="number" id="serverPort" placeholder="Port" required>
             <button onclick="startFetching()">Search</button>
         </div>
 
@@ -45,10 +46,15 @@
 
         <div id="results">
             <div class="server-info">
-                <h2 id="serverName" style="margin:0 0 10px 0; color:#fff;">-</h2>
-                <p style="margin:5px 0;"><b>Map:</b> <span id="serverMap">-</span></p>
-                <p style="margin:5px 0;"><b>Mode:</b> <span id="serverMode">-</span></p>
-                <p style="margin:5px 0;"><b>Players:</b> <span id="playerCount">0/0</span></p>
+                <div class="info-col">
+                    <h2 id="serverName" style="margin:0 0 10px 0; color:#fff;">-</h2>
+                    <p style="margin:5px 0;"><b>Mode:</b> <span id="serverMode">-</span></p>
+                    <p style="margin:5px 0;"><b>Players:</b> <span id="playerCount">0/0</span></p>
+                </div>
+                <div class="info-col">
+                    <p style="margin:5px 0;"><b>Current Map:</b> <span id="serverMap">-</span></p>
+                    <p style="margin:5px 0; color: #4CAF50;"><b>Next Map:</b> <span id="serverNextMap">-</span></p>
+                </div>
             </div>
 
             <div class="teams-container">
@@ -72,6 +78,9 @@
 
     <script>
         let fetchInterval = null;
+        
+        
+        const API_URL = "/api/status"; 
 
         function startFetching() {
             let ip = document.getElementById("serverIp").value.trim();
@@ -91,12 +100,12 @@
             fetchData(ip, port);
             
             
-            fetchInterval = setInterval(() => fetchData(ip, port, true), 10000);
+            fetchInterval = setInterval(() => fetchData(ip, port, true), 1000);
         }
 
         async function fetchData(ip, port, isSilent = false) {
             try {
-                let response = await fetch(`/api/status?ip=${ip}&port=${port}`);
+                let response = await fetch(`${API_URL}?ip=${ip}&port=${port}`);
                 let data = await response.json();
 
                 if (!isSilent) document.getElementById("loading").style.display = "none";
@@ -109,6 +118,10 @@
 
                 document.getElementById("serverName").innerText = data.name;
                 document.getElementById("serverMap").innerText = data.map;
+                
+                let nextMap = (data.raw && data.raw.bf2_nextmap) ? data.raw.bf2_nextmap : "Not Available";
+                document.getElementById("serverNextMap").innerText = nextMap;
+
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
                 
                 let mode = (data.raw && data.raw.gametype) ? data.raw.gametype : "Unknown";
