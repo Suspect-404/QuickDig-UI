@@ -3,76 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickDig UI</title>
+    <title>QuickDig UI 🚀</title>
     <style>
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212; 
-            color: #ffffff; 
+            background-color: #121212;
+            color: #ffffff;
             text-align: center;
-            padding: 50px 20px;
+            padding: 30px 15px;
+            margin: 0;
         }
         .container {
-            max-width: 700px;
+            max-width: 800px;
             margin: 0 auto;
-            background: #1e1e24; 
-            padding: 30px;
+            background: #1e1e24;
+            padding: 25px;
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
         }
-        h1 { color: #4CAF50; }
-        .input-group { margin-bottom: 20px; }
+        h1 { color: #4CAF50; margin-bottom: 5px; }
+        p.subtitle { color: #aaa; margin-top: 0; }
+        .input-group { margin-bottom: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
         input {
             padding: 12px;
-            margin: 5px;
             border-radius: 6px;
             border: 1px solid #444;
             background: #2b2b36;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
         }
         button {
-            padding: 12px 25px;
-            background: #4CAF50; 
+            padding: 12px 20px;
+            background: #4CAF50;
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
-            transition: 0.3s;
+            font-weight: bold;
         }
         button:hover { background: #45a049; }
+        .live-toggle { margin-top: 10px; font-size: 14px; color: #bbb; }
         
-        
-        #results { margin-top: 30px; text-align: left; display: none; }
-        .server-info { background: #2b2b36; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        #results { margin-top: 25px; text-align: left; display: none; }
+        .server-info { background: #2b2b36; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4CAF50; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #444; padding: 10px; text-align: center; }
-        th { background-color: #333; color: #4CAF50; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: center; }
+        th { background-color: #252530; color: #4CAF50; }
+        tr:nth-child(even) { background-color: #1a1a22; }
+        .error-box { background: #8b0000; color: white; padding: 10px; border-radius: 6px; display: none; margin-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>QuickDig UI 🚀</h1>
-        <p>Fast, Login-Free Game Server Status</p>
-        
+        <p class="subtitle">Fast, Login-Free Game Server Status</p>
         
         <div class="input-group">
-            <input type="text" id="serverIp" placeholder="Server IP (e.g. 62.122.215.253)" required>
+            <input type="text" id="serverIp" placeholder="Server IP (e.g. 149.202.89.241)" required>
             <input type="number" id="serverPort" placeholder="Port (e.g. 29900)" required>
-            <button onclick="fetchData()">Search</button>
+            <button onclick="fetchData()">Search 🔍</button>
         </div>
 
-        <div id="loading" style="display:none; color: #aaa;">Searching... ⏳</div>
+        <div class="live-toggle">
+            <label>
+                <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()"> Auto-Refresh (Every 10s) 🔄
+            </label>
+        </div>
 
-        
+        <div id="loading" style="display:none; color: #aaa; margin-top: 15px;">Fetching server data... ⏳</div>
+        <div id="error" class="error-box"></div>
+
         <div id="results">
             <div class="server-info">
-                <h3 id="serverName">Server Name: Loading...</h3>
-                <p id="serverMap">Map: Loading...</p>
-                <p id="playerCount">Players: 0/0</p>
+                <h2 id="serverName" style="margin:0 0 10px 0; color:#fff;">-</h2>
+                <p style="margin:5px 0;">🗺️ <b>Map:</b> <span id="serverMap">-</span></p>
+                <p style="margin:5px 0;">👥 <b>Players:</b> <span id="playerCount">0/0</span></p>
             </div>
 
             <table>
@@ -85,32 +92,85 @@
                     </tr>
                 </thead>
                 <tbody id="playersTable">
-                   
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        
-        function fetchData() {
-            let ip = document.getElementById("serverIp").value;
-            let port = document.getElementById("serverPort").value;
+        let timer = null;
+
+        async function fetchData() {
+            let ip = document.getElementById("serverIp").value.trim();
+            let port = document.getElementById("serverPort").value.trim();
 
             if(!ip || !port) {
-                alert("Please enter both IP and Port!");
+                showError("Please enter both IP and Port!");
                 return;
             }
 
-           
+            hideError();
             document.getElementById("loading").style.display = "block";
-            document.getElementById("results").style.display = "none";
 
-           
-            setTimeout(() => {
+            try {
+                let response = await fetch(`/api/status?ip=${ip}&port=${port}`);
+                let data = await response.json();
+
                 document.getElementById("loading").style.display = "none";
-                alert("الزرار شغال تمام! أخدنا الـ IP: " + ip + " والـ Port: " + port + "\nالخطوة الجاية هنربطه بكود Node.js عشان يجيب الداتا الحقيقية.");
-            }, 1000);
+
+                if(!data.success) {
+                    showError(data.error);
+                    return;
+                }
+
+                document.getElementById("serverName").innerText = data.name;
+                document.getElementById("serverMap").innerText = data.map;
+                document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
+
+                let tbody = document.getElementById("playersTable");
+                tbody.innerHTML = "";
+
+                if(data.players.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4'>No players currently online</td></tr>";
+                } else {
+                    data.players.forEach(p => {
+                        let row = `<tr>
+                            <td>${p.name || 'Unnamed'}</td>
+                            <td>${p.raw?.score ?? p.score ?? 0}</td>
+                            <td>${p.raw?.ping ?? p.ping ?? 0} ms</td>
+                            <td>Team ${p.raw?.team ?? '-'}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                }
+
+                document.getElementById("results").style.display = "block";
+
+            } catch (err) {
+                document.getElementById("loading").style.display = "none";
+                showError("Failed to connect to the backend server.");
+            }
+        }
+
+        function toggleAutoRefresh() {
+            let isChecked = document.getElementById("autoRefresh").checked;
+            if(isChecked) {
+                fetchData(); 
+                timer = setInterval(fetchData, 10000); 
+            } else {
+                clearInterval(timer);
+            }
+        }
+
+        function showError(msg) {
+            let errDiv = document.getElementById("error");
+            errDiv.innerText = msg;
+            errDiv.style.display = "block";
+            document.getElementById("results").style.display = "none";
+        }
+
+        function hideError() {
+            document.getElementById("error").style.display = "none";
         }
     </script>
 
