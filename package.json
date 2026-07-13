@@ -1,0 +1,14 @@
+{
+  "name": "quickdig-ui",
+  "version": "1.0.0",
+  "description": "Fast, Login-Free Game Server Status UI using GameDig",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "gamedig": "^5.0.0"
+  }
+}
