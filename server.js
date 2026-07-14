@@ -13,14 +13,15 @@ app.get('/api/status', async (req, res) => {
     const { ip, port, game } = req.query;
 
     if (!ip || !port) {
-        return res.status(400).json({ error: 'Please provide both IP and Port.' });
+        return res.status(400).json({ error: 'Please provide IP and Port.' });
     }
 
     try {
         const state = await GameDig.query({
             type: game || 'battlefield2',
             host: ip,
-            port: parseInt(port)
+            port: parseInt(port),
+            maxRetries: 2
         });
 
         res.json({
@@ -30,16 +31,18 @@ app.get('/api/status', async (req, res) => {
             numplayers: state.players.length,
             maxplayers: state.maxplayers,
             players: state.players,
-            raw: state.raw 
+            raw: state.raw
         });
     } catch (error) {
         res.status(500).json({ 
             success: false, 
-            error: 'Failed to connect to the server. Please check the IP and Port.' 
+            error: 'Connection failed. Verify the IP, Query Port, and Game Type.' 
         });
     }
 });
 
 app.listen(PORT, () => {
-    console.log(`QuickDig UI Backend running on port ${PORT}`);
+    console.log(`Backend running on port ${PORT}`);
 });
+
+module.exports = app;
