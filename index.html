@@ -6,22 +6,19 @@
     <title>QuickDig UI</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; text-align: center; padding: 30px 15px; margin: 0; }
-        .container { max-width: 900px; margin: 0 auto; background: #1e1e24; padding: 25px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
+        .container { max-width: 1000px; margin: 0 auto; background: #1e1e24; padding: 25px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
         h1 { color: #4CAF50; margin-bottom: 5px; }
         p.subtitle { color: #aaa; margin-top: 0; }
         .input-group { margin-bottom: 25px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        input { padding: 12px; border-radius: 6px; border: 1px solid #444; background: #2b2b36; color: white; font-size: 15px; }
+        input, select { padding: 12px; border-radius: 6px; border: 1px solid #444; background: #2b2b36; color: white; font-size: 15px; }
         button { padding: 12px 20px; background: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: bold; }
         button:hover { background: #45a049; }
-        
         #results { margin-top: 15px; text-align: left; display: none; }
         .server-info { background: #2b2b36; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50; display: flex; justify-content: space-between; flex-wrap: wrap;}
         .info-col { flex: 1; min-width: 200px; }
-        
         .teams-container { display: flex; gap: 20px; justify-content: space-between; flex-wrap: wrap; }
-        .team-box { flex: 1; min-width: 300px; background: #2b2b36; padding: 15px; border-radius: 8px; }
+        .team-box { flex: 1; min-width: 300px; background: #2b2b36; padding: 15px; border-radius: 8px; overflow-x: auto; }
         .team-box h3 { text-align: center; margin-top: 0; color: #4CAF50; border-bottom: 2px solid #444; padding-bottom: 10px; }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 14px; }
         th { background-color: #252530; color: #fff; }
@@ -30,14 +27,20 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <h1>QuickDig UI</h1>
-        <p class="subtitle">Fast, Login-Free Game Server Status</p>
+        <p class="subtitle">Multi-Game Server Monitor</p>
         
         <div class="input-group">
+            <select id="gameType">
+                <option value="battlefield2">Project Reality / BF2</option>
+                <option value="csgo">CS:GO</option>
+                <option value="css">CS: Source</option>
+                <option value="arma3">Arma 3</option>
+                <option value="squad">Squad</option>
+            </select>
             <input type="text" id="serverIp" placeholder="Server IP" required>
-            <input type="number" id="serverPort" placeholder="Port" required>
+            <input type="number" id="serverPort" placeholder="Query Port" required>
             <button onclick="startFetching()">Search</button>
         </div>
 
@@ -61,14 +64,14 @@
                 <div class="team-box">
                     <h3 id="team1Name">Team 1</h3>
                     <table>
-                        <thead><tr><th>Player</th><th>Score</th><th>Ping</th></tr></thead>
+                        <thead><tr><th>Name</th><th>Score</th><th>Kills</th><th>Deaths</th><th>Ping</th></tr></thead>
                         <tbody id="team1Table"></tbody>
                     </table>
                 </div>
                 <div class="team-box">
                     <h3 id="team2Name">Team 2</h3>
                     <table>
-                        <thead><tr><th>Player</th><th>Score</th><th>Ping</th></tr></thead>
+                        <thead><tr><th>Name</th><th>Score</th><th>Kills</th><th>Deaths</th><th>Ping</th></tr></thead>
                         <tbody id="team2Table"></tbody>
                     </table>
                 </div>
@@ -78,34 +81,30 @@
 
     <script>
         let fetchInterval = null;
-        
-        
         const API_URL = "/api/status"; 
 
         function startFetching() {
             let ip = document.getElementById("serverIp").value.trim();
             let port = document.getElementById("serverPort").value.trim();
+            let game = document.getElementById("gameType").value;
 
             if(!ip || !port) {
-                showError("Please enter both IP and Port.");
+                showError("Please enter IP and Port.");
                 return;
             }
 
             if (fetchInterval) clearInterval(fetchInterval);
-            
             document.getElementById("loading").style.display = "block";
             document.getElementById("results").style.display = "none";
             hideError();
 
-            fetchData(ip, port);
-            
-            
-            fetchInterval = setInterval(() => fetchData(ip, port, true), 1000);
+            fetchData(ip, port, game);
+            fetchInterval = setInterval(() => fetchData(ip, port, game, true), 5000);
         }
 
-        async function fetchData(ip, port, isSilent = false) {
+        async function fetchData(ip, port, game, isSilent = false) {
             try {
-                let response = await fetch(`${API_URL}?ip=${ip}&port=${port}`);
+                let response = await fetch(`${API_URL}?ip=${ip}&port=${port}&game=${game}`);
                 let data = await response.json();
 
                 if (!isSilent) document.getElementById("loading").style.display = "none";
@@ -118,59 +117,52 @@
 
                 document.getElementById("serverName").innerText = data.name;
                 document.getElementById("serverMap").innerText = data.map;
-                
-                let nextMap = (data.raw && data.raw.bf2_nextmap) ? data.raw.bf2_nextmap : "Not Available";
-                document.getElementById("serverNextMap").innerText = nextMap;
-
+                document.getElementById("serverNextMap").innerText = data.raw?.bf2_nextmap || "N/A";
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
-                
-                let mode = (data.raw && data.raw.gametype) ? data.raw.gametype : "Unknown";
-                document.getElementById("serverMode").innerText = mode;
-
-                let t1Name = (data.raw && data.raw.bf2_team1) ? data.raw.bf2_team1 : "Team 1";
-                let t2Name = (data.raw && data.raw.bf2_team2) ? data.raw.bf2_team2 : "Team 2";
-                document.getElementById("team1Name").innerText = t1Name;
-                document.getElementById("team2Name").innerText = t2Name;
+                document.getElementById("serverMode").innerText = data.raw?.gametype || "N/A";
+                document.getElementById("team1Name").innerText = data.raw?.bf2_team1 || "Team 1";
+                document.getElementById("team2Name").innerText = data.raw?.bf2_team2 || "Team 2";
 
                 let t1Body = document.getElementById("team1Table");
                 let t2Body = document.getElementById("team2Table");
-                t1Body.innerHTML = "";
-                t2Body.innerHTML = "";
+                t1Body.innerHTML = ""; t2Body.innerHTML = "";
 
-                let team1Players = [];
-                let team2Players = [];
-
+                let t1 = [], t2 = [];
                 data.players.forEach(p => {
                     let team = p.raw?.team ?? p.team ?? 1;
-                    if (team == 1) team1Players.push(p);
-                    else team2Players.push(p);
+                    if (team == 1) t1.push(p); else t2.push(p);
                 });
 
-                function renderTable(players, tbody) {
+                function renderRows(players, tbody) {
                     if(players.length === 0) {
-                        tbody.innerHTML = "<tr><td colspan='3'>No players</td></tr>";
-                    } else {
-                        players.sort((a, b) => (b.raw?.score ?? b.score ?? 0) - (a.raw?.score ?? a.score ?? 0));
-                        players.forEach(p => {
-                            let row = `<tr>
-                                <td>${p.name || 'Unnamed'}</td>
-                                <td>${p.raw?.score ?? p.score ?? 0}</td>
-                                <td>${p.raw?.ping ?? p.ping ?? 0} ms</td>
-                            </tr>`;
-                            tbody.innerHTML += row;
-                        });
+                        tbody.innerHTML = "<tr><td colspan='5'>No players</td></tr>";
+                        return;
                     }
+                    players.sort((a, b) => (b.score || 0) - (a.score || 0));
+                    players.forEach(p => {
+                        let score = p.raw?.score ?? p.score ?? "-";
+                        let kills = p.raw?.kills ?? p.kills ?? "-";
+                        let deaths = p.raw?.deaths ?? p.deaths ?? "-";
+                        let ping = p.raw?.ping ?? p.ping ?? "-";
+                        
+                        tbody.innerHTML += `<tr>
+                            <td>${p.name || 'Unknown'}</td>
+                            <td>${score}</td>
+                            <td>${kills}</td>
+                            <td>${deaths}</td>
+                            <td>${ping} ms</td>
+                        </tr>`;
+                    });
                 }
 
-                renderTable(team1Players, t1Body);
-                renderTable(team2Players, t2Body);
-
+                renderRows(t1, t1Body);
+                renderRows(t2, t2Body);
                 document.getElementById("results").style.display = "block";
 
             } catch (err) {
                 if (!isSilent) {
                     document.getElementById("loading").style.display = "none";
-                    showError("Failed to connect to the backend server.");
+                    showError("Backend connection failed.");
                 }
             }
         }
@@ -179,9 +171,7 @@
             let errDiv = document.getElementById("error");
             errDiv.innerText = msg;
             errDiv.style.display = "block";
-            document.getElementById("results").style.display = "none";
         }
-
         function hideError() {
             document.getElementById("error").style.display = "none";
         }
