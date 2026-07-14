@@ -218,6 +218,16 @@
             background-color: #1f252e;
         }
 
+        tr.team-total-row {
+            background-color: #161b22 !important;
+            border-top: 2px solid #2ea043;
+            font-weight: 700;
+        }
+
+        tr.team-total-row:hover {
+            background-color: #161b22 !important;
+        }
+
         .error-box {
             background: rgba(248, 81, 73, 0.1);
             border: 1px solid #f85149;
@@ -387,6 +397,56 @@
         let fetchInterval = null;
         const API_URL = "/api/status"; 
 
+        // -----------------------------------------------------------------
+        // Project Reality gametype code -> human readable name / abbreviation
+        // Source: realitymod.org official manual + PR map editor layer filters
+        // -----------------------------------------------------------------
+        const GAME_MODE_NAMES = {
+            gpm_cq: "Advance and Secure (AAS)",
+            gpm_insurgency: "Insurgency (INS)",
+            gpm_vehicles: "Vehicle Warfare (VW)",
+            gpm_cnc: "Command & Control (CNC)",
+            gpm_skirmish: "Skirmish",
+            gpm_coop: "Co-Operative (COOP)",
+            gpm_gungame: "Gungame"
+        };
+
+        const GAME_MODE_ABBR = {
+            gpm_cq: "AAS",
+            gpm_insurgency: "INS",
+            gpm_vehicles: "VW",
+            gpm_cnc: "CNC",
+            gpm_skirmish: "Skirmish",
+            gpm_coop: "COOP",
+            gpm_gungame: "Gungame"
+        };
+
+        // Project Reality map layer sizes (player count) -> layer name / abbreviation
+        const LAYER_SIZE_ABBR = {
+            "16": "Inf",
+            "32": "Alt",
+            "64": "Std",
+            "128": "Lrg"
+        };
+
+        function getModeName(code) {
+            return GAME_MODE_NAMES[code] || code || "N/A";
+        }
+
+        function getLayerLabel(gametype, mapsize) {
+            const modeAbbr = GAME_MODE_ABBR[gametype] || gametype || "";
+            const sizeAbbr = LAYER_SIZE_ABBR[mapsize] || "";
+            return [modeAbbr, sizeAbbr].filter(Boolean).join(" ");
+        }
+
+        // Effective stat getters - these MUST match between sorting and
+        // rendering, otherwise players get displayed in the wrong order
+        // (their raw.* value is shown, but a different field was sorted on).
+        function getScore(p) { return Number(p.raw?.score ?? p.score ?? 0); }
+        function getKills(p) { return Number(p.raw?.skill ?? p.skill ?? p.raw?.kills ?? p.kills ?? 0); }
+        function getDeaths(p) { return Number(p.raw?.death ?? p.death ?? p.raw?.deaths ?? p.deaths ?? 0); }
+        function getPing(p) { return Number(p.raw?.ping ?? p.ping ?? 0); }
+
         function startFetching() {
             let ip = document.getElementById("serverIp").value.trim();
             let port = document.getElementById("serverPort").value.trim();
@@ -422,9 +482,16 @@
                 }
 
                 document.getElementById("serverName").innerText = data.name || "Unknown Server";
-                document.getElementById("serverMap").innerText = data.map || "N/A";
+
+                const gametype = data.raw?.gametype;
+                const mapsize = data.raw?.bf2_mapsize;
+                const layerLabel = getLayerLabel(gametype, mapsize);
+                document.getElementById("serverMap").innerText = layerLabel
+                    ? `${data.map || "N/A"} (${layerLabel})`
+                    : (data.map || "N/A");
+
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
-                document.getElementById("serverMode").innerText = data.raw?.gametype || "N/A";
+                document.getElementById("serverMode").innerText = getModeName(gametype);
                 document.getElementById("team1Name").innerText = data.raw?.bf2_team1 || "Team 1";
                 document.getElementById("team2Name").innerText = data.raw?.bf2_team2 || "Team 2";
 
@@ -458,13 +525,25 @@
                         tbody.innerHTML = "<tr><td colspan='5' style='color:#8b949e; padding: 20px;'>No active players</td></tr>";
                         return;
                     }
-                    players.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+                    // Sort using the SAME effective value that gets displayed,
+                    // otherwise players show their real (raw) score but get
+                    // sorted by a different/undefined field.
+                    players.sort((a, b) => getScore(b) - getScore(a));
+
+                    let totalScore = 0, totalKills = 0, totalDeaths = 0, totalPing = 0;
+
                     players.forEach(p => {
-                        let score = p.raw?.score ?? p.score ?? "-";
-                        let kills = p.raw?.skill ?? p.skill ?? p.raw?.kills ?? p.kills ?? "-";
-                        let deaths = p.raw?.death ?? p.death ?? p.raw?.deaths ?? p.deaths ?? "-";
-                        let ping = p.raw?.ping ?? p.ping ?? "-";
-                        
+                        const score = getScore(p);
+                        const kills = getKills(p);
+                        const deaths = getDeaths(p);
+                        const ping = getPing(p);
+
+                        totalScore += score;
+                        totalKills += kills;
+                        totalDeaths += deaths;
+                        totalPing += ping;
+
                         tbody.innerHTML += `<tr>
                             <td style="text-align:left; font-weight: 500; color: #e6edf3;">${p.name || 'Unknown'}</td>
                             <td style="color: #58a6ff;">${score}</td>
@@ -473,6 +552,17 @@
                             <td style="color: #8b949e;">${ping} ms</td>
                         </tr>`;
                     });
+
+                    const avgPing = Math.round(totalPing / players.length);
+
+                    // Team totals row - mirrors the summary row shown on PRSPY
+                    tbody.innerHTML += `<tr class="team-total-row">
+                        <td style="text-align:left; color:#2ea043;">${players.length} Players</td>
+                        <td style="color: #58a6ff;">${totalScore}</td>
+                        <td>${totalKills}</td>
+                        <td>${totalDeaths}</td>
+                        <td style="color: #8b949e;">${avgPing} ms</td>
+                    </tr>`;
                 }
 
                 renderRows(t1, t1Body);
