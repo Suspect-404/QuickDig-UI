@@ -5,57 +5,229 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuickDig UI</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; text-align: center; padding: 30px 15px; margin: 0; }
-        .container { max-width: 1000px; margin: 0 auto; background: #1e1e24; padding: 25px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
-        h1 { color: #4CAF50; margin-bottom: 5px; }
-        p.subtitle { color: #aaa; margin-top: 0; }
-        .input-group { margin-bottom: 25px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        input, select { padding: 12px; border-radius: 6px; border: 1px solid #444; background: #2b2b36; color: white; font-size: 15px; }
-        button { padding: 12px 20px; background: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #45a049; }
-        #results { margin-top: 15px; text-align: left; display: none; }
-        .server-info { background: #2b2b36; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50; display: flex; justify-content: space-between; flex-wrap: wrap;}
-        .info-col { flex: 1; min-width: 200px; }
-        .teams-container { display: flex; gap: 20px; justify-content: space-between; flex-wrap: wrap; }
-        .team-box { flex: 1; min-width: 300px; background: #2b2b36; padding: 15px; border-radius: 8px; overflow-x: auto; }
-        .team-box h3 { text-align: center; margin-top: 0; color: #4CAF50; border-bottom: 2px solid #444; padding-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 14px; }
-        th { background-color: #252530; color: #fff; }
-        tr:nth-child(even) { background-color: #1a1a22; }
-        .error-box { background: #8b0000; color: white; padding: 10px; border-radius: 6px; display: none; margin-top: 15px; text-align: center; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            text-align: center;
+            padding: 30px 15px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #161b22;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            color: #2ea043;
+            margin-bottom: 5px;
+            font-size: 28px;
+            letter-spacing: 0.5px;
+        }
+
+        p.subtitle {
+            color: #8b949e;
+            margin-top: 0;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        input, select {
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            background: #21262d;
+            color: #c9d1d9;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #58a6ff;
+        }
+
+        button {
+            padding: 10px 22px;
+            background: #238636;
+            color: #ffffff;
+            border: 1px solid rgba(240, 246, 252, 0.1);
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+
+        button:hover {
+            background: #2ea043;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #results {
+            margin-top: 15px;
+            text-align: left;
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated-view {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .server-info {
+            background: #21262d;
+            padding: 18px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2ea043;
+            border-top: 1px solid #30363d;
+            border-right: 1px solid #30363d;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-col {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .teams-container {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .team-box {
+            flex: 1;
+            min-width: 320px;
+            background: #21262d;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            overflow-x: auto;
+        }
+
+        .team-box h3 {
+            text-align: center;
+            margin-top: 0;
+            color: #58a6ff;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+            font-size: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #30363d;
+            padding: 8px 10px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        th {
+            background-color: #161b22;
+            color: #8b949e;
+            font-weight: 600;
+        }
+
+        tr {
+            transition: background-color 0.15s ease;
+        }
+
+        tr:nth-child(even) {
+            background-color: #1a1f26;
+        }
+
+        tr:hover {
+            background-color: #2d333b;
+        }
+
+        .error-box {
+            background: #3c1e1e;
+            border: 1px solid #f85149;
+            color: #ff7b72;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        #loading {
+            display: none;
+            color: #8b949e;
+            margin-top: 15px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>QuickDig UI</h1>
-        <p class="subtitle">Multi-Game Server Monitor</p>
+        <p class="subtitle">Tactical Game Server Monitor</p>
         
         <div class="input-group">
             <select id="gameType">
-    <option value="battlefield2">Project Reality</option>
-    <option value="battlefield2">Battlefield 2</option>
-    <option value="csgo">CS:GO</option>
-            </select>
+                <option value="battlefield2">Project Reality</option>
+                <option value="battlefield2">Battlefield 2</option>
             </select>
             <input type="text" id="serverIp" placeholder="Server IP" required>
             <input type="number" id="serverPort" placeholder="Query Port" required>
             <button onclick="startFetching()">Search</button>
         </div>
 
-        <div id="loading" style="display:none; color: #aaa; margin-top: 15px;">Fetching server data...</div>
+        <div id="loading">Fetching server data...</div>
         <div id="error" class="error-box"></div>
 
         <div id="results">
             <div class="server-info">
                 <div class="info-col">
-                    <h2 id="serverName" style="margin:0 0 10px 0; color:#fff;">-</h2>
-                    <p style="margin:5px 0;"><b>Mode:</b> <span id="serverMode">-</span></p>
-                    <p style="margin:5px 0;"><b>Players:</b> <span id="playerCount">0/0</span></p>
+                    <h2 id="serverName" style="margin:0 0 10px 0; color:#ffffff; font-size: 18px;">-</h2>
+                    <p style="margin:4px 0;"><b>Mode:</b> <span id="serverMode">-</span></p>
+                    <p style="margin:4px 0;"><b>Players:</b> <span id="playerCount">0 / 0</span></p>
                 </div>
                 <div class="info-col">
-                    <p style="margin:5px 0;"><b>Current Map:</b> <span id="serverMap">-</span></p>
-                    <p style="margin:5px 0; color: #4CAF50;"><b>Next Map:</b> <span id="serverNextMap">-</span></p>
+                    <p style="margin:4px 0;"><b>Current Map:</b> <span id="serverMap">-</span></p>
+                    <p style="margin:4px 0; color: #2ea043;"><b>Next Map:</b> <span id="serverNextMap">-</span></p>
                 </div>
             </div>
 
@@ -63,14 +235,30 @@
                 <div class="team-box">
                     <h3 id="team1Name">Team 1</h3>
                     <table>
-                        <thead><tr><th>Name</th><th>Score</th><th>Kills</th><th>Deaths</th><th>Ping</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Score</th>
+                                <th>Kills</th>
+                                <th>Deaths</th>
+                                <th>Ping</th>
+                            </tr>
+                        </thead>
                         <tbody id="team1Table"></tbody>
                     </table>
                 </div>
                 <div class="team-box">
                     <h3 id="team2Name">Team 2</h3>
                     <table>
-                        <thead><tr><th>Name</th><th>Score</th><th>Kills</th><th>Deaths</th><th>Ping</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Score</th>
+                                <th>Kills</th>
+                                <th>Deaths</th>
+                                <th>Ping</th>
+                            </tr>
+                        </thead>
                         <tbody id="team2Table"></tbody>
                     </table>
                 </div>
@@ -94,7 +282,11 @@
 
             if (fetchInterval) clearInterval(fetchInterval);
             document.getElementById("loading").style.display = "block";
-            document.getElementById("results").style.display = "none";
+            
+            let resultsDiv = document.getElementById("results");
+            resultsDiv.style.display = "none";
+            resultsDiv.classList.remove("animated-view");
+            
             hideError();
 
             fetchData(ip, port, game);
@@ -116,16 +308,30 @@
 
                 document.getElementById("serverName").innerText = data.name;
                 document.getElementById("serverMap").innerText = data.map;
-                let nextMapData = data.raw?.bf2_sponsor || data.raw?.bf2_nextmap || "N/A";
-                document.getElementById("serverNextMap").innerText = nextMapData.includes("http") ? (data.raw?.bf2_nextmap || "N/A") : nextMapData;
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
                 document.getElementById("serverMode").innerText = data.raw?.gametype || "N/A";
                 document.getElementById("team1Name").innerText = data.raw?.bf2_team1 || "Team 1";
                 document.getElementById("team2Name").innerText = data.raw?.bf2_team2 || "Team 2";
 
+                // Smart Next Map logic
+                let nextMap = "N/A";
+                if (data.raw) {
+                    if (data.raw.bf2_nextmap && !data.raw.bf2_nextmap.includes("http")) {
+                        nextMap = data.raw.bf2_nextmap;
+                    } else if (data.raw.bf2_sponsortext && data.raw.bf2_sponsortext.includes("|")) {
+                        let parts = data.raw.bf2_sponsortext.split("|");
+                        let potentialMap = parts[parts.length - 1].trim();
+                        if (!potentialMap.includes("http") && !potentialMap.includes(".com")) {
+                            nextMap = potentialMap;
+                        }
+                    }
+                }
+                document.getElementById("serverNextMap").innerText = nextMap;
+
                 let t1Body = document.getElementById("team1Table");
                 let t2Body = document.getElementById("team2Table");
-                t1Body.innerHTML = ""; t2Body.innerHTML = "";
+                t1Body.innerHTML = ""; 
+                t2Body.innerHTML = "";
 
                 let t1 = [], t2 = [];
                 data.players.forEach(p => {
@@ -135,7 +341,7 @@
 
                 function renderRows(players, tbody) {
                     if(players.length === 0) {
-                        tbody.innerHTML = "<tr><td colspan='5'>No players</td></tr>";
+                        tbody.innerHTML = "<tr><td colspan='5' style='color:#8b949e;'>No active players</td></tr>";
                         return;
                     }
                     players.sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -146,7 +352,7 @@
                         let ping = p.raw?.ping ?? p.ping ?? "-";
                         
                         tbody.innerHTML += `<tr>
-                            <td>${p.name || 'Unknown'}</td>
+                            <td style="text-align:left;">${p.name || 'Unknown'}</td>
                             <td>${score}</td>
                             <td>${kills}</td>
                             <td>${deaths}</td>
@@ -157,7 +363,12 @@
 
                 renderRows(t1, t1Body);
                 renderRows(t2, t2Body);
-                document.getElementById("results").style.display = "block";
+
+                let resultsDiv = document.getElementById("results");
+                resultsDiv.style.display = "block";
+                if (!isSilent) {
+                    resultsDiv.classList.add("animated-view");
+                }
 
             } catch (err) {
                 if (!isSilent) {
