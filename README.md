@@ -1,4 +1,4 @@
-# QuickDig UI - Server Status Monitor
+# QuickDig UI
 
 A fast, lightweight, and open-source web interface designed to verify game server status, network addresses, and live player rosters.
 
@@ -23,7 +23,7 @@ To ensure accurate data extraction and correct team parsing, this tool is optimi
 * Next Map Visibility: The Next Map string is only displayed if the server explicitly broadcasts it. Vanilla Battlefield 2 servers generally do not provide this variable externally.
 
 ## Architecture
-* Frontend: HTML5, CSS3, Vanilla JavaScript.
+* Frontend: HTML5, CSS3, Vanilla JavaScript (Canvas Animation).
 * Backend API: Node.js, Express.
 * Query Engine: node-gamedig.
 * Deployment: Vercel.
