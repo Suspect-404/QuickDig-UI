@@ -1,4 +1,4 @@
-# QuickDig UI
+ # QuickDig UI
 
 A fast, lightweight, and open-source web interface designed to verify game server status, network addresses, and live player rosters.
 
