@@ -5,63 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuickDig UI</title>
     <style>
+        /* Animated Green Grid Background */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0d1117;
+            background-image: 
+                linear-gradient(rgba(46, 160, 67, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(46, 160, 67, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
             color: #c9d1d9;
             text-align: center;
-            padding: 30px 15px;
+            padding: 40px 15px;
             margin: 0;
+            animation: moveGrid 20s linear infinite;
+        }
+
+        @keyframes moveGrid {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
         }
 
         .container {
             max-width: 1000px;
             margin: 0 auto;
             background: #161b22;
-            padding: 25px;
+            padding: 30px;
             border-radius: 8px;
             border: 1px solid #30363d;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            position: relative;
+            z-index: 2;
         }
 
         h1 {
             color: #2ea043;
-            margin-bottom: 5px;
-            font-size: 28px;
-            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            font-size: 32px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        p.subtitle {
-            color: #8b949e;
-            margin-top: 0;
+        /* Intro Box Section */
+        .intro-box {
+            background: #21262d;
+            border-left: 4px solid #58a6ff;
+            padding: 15px 20px;
+            margin: 0 auto 30px auto;
+            max-width: 700px;
+            border-radius: 4px;
+            text-align: left;
             font-size: 14px;
+            line-height: 1.6;
+            color: #8b949e;
+        }
+
+        .intro-box strong {
+            color: #c9d1d9;
         }
 
         .input-group {
             margin-bottom: 25px;
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
 
         input, select {
-            padding: 10px 14px;
+            padding: 12px 16px;
             border-radius: 6px;
             border: 1px solid #30363d;
-            background: #21262d;
+            background: #0d1117;
             color: #c9d1d9;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         input:focus, select:focus {
-            border-color: #58a6ff;
+            border-color: #2ea043;
+            box-shadow: 0 0 8px rgba(46, 160, 67, 0.2);
         }
 
         button {
-            padding: 10px 22px;
+            padding: 12px 24px;
             background: #238636;
             color: #ffffff;
             border: 1px solid rgba(240, 246, 252, 0.1);
@@ -74,7 +101,8 @@
 
         button:hover {
             background: #2ea043;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 160, 67, 0.4);
         }
 
         button:active {
@@ -82,36 +110,27 @@
         }
 
         #results {
-            margin-top: 15px;
+            margin-top: 20px;
             text-align: left;
             display: none;
         }
 
-        /* Animations */
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .animated-view {
-            animation: fadeIn 0.4s ease-out forwards;
+            animation: fadeIn 0.5s ease-out forwards;
         }
 
         .server-info {
-            background: #21262d;
-            padding: 18px;
+            background: #0d1117;
+            padding: 20px;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #30363d;
             border-left: 4px solid #2ea043;
-            border-top: 1px solid #30363d;
-            border-right: 1px solid #30363d;
-            border-bottom: 1px solid #30363d;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
@@ -120,7 +139,12 @@
 
         .info-col {
             flex: 1;
-            min-width: 220px;
+            min-width: 250px;
+        }
+
+        .info-col p {
+            margin: 6px 0;
+            font-size: 15px;
         }
 
         .teams-container {
@@ -133,7 +157,7 @@
         .team-box {
             flex: 1;
             min-width: 320px;
-            background: #21262d;
+            background: #0d1117;
             padding: 15px;
             border-radius: 6px;
             border: 1px solid #30363d;
@@ -145,8 +169,10 @@
             margin-top: 0;
             color: #58a6ff;
             border-bottom: 1px solid #30363d;
-            padding-bottom: 10px;
+            padding-bottom: 12px;
             font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         table {
@@ -157,9 +183,9 @@
 
         th, td {
             border: 1px solid #30363d;
-            padding: 8px 10px;
+            padding: 10px;
             text-align: center;
-            font-size: 13px;
+            font-size: 14px;
         }
 
         th {
@@ -169,7 +195,7 @@
         }
 
         tr {
-            transition: background-color 0.15s ease;
+            transition: background-color 0.2s ease;
         }
 
         tr:nth-child(even) {
@@ -181,53 +207,66 @@
         }
 
         .error-box {
-            background: #3c1e1e;
+            background: rgba(248, 81, 73, 0.1);
             border: 1px solid #f85149;
             color: #ff7b72;
-            padding: 12px;
+            padding: 15px;
             border-radius: 6px;
             display: none;
-            margin-top: 15px;
+            margin-top: 20px;
             text-align: center;
-            font-size: 14px;
+            font-size: 15px;
         }
 
         #loading {
             display: none;
-            color: #8b949e;
-            margin-top: 15px;
-            font-size: 14px;
+            color: #58a6ff;
+            margin-top: 20px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>QuickDig UI</h1>
-        <p class="subtitle">Tactical Game Server Monitor</p>
+        
+        <div class="intro-box" id="introBox">
+            <strong>Welcome to the Verification Tool.</strong><br>
+            This web interface allows administrators and developers to instantly verify target game servers. Input an IP and Query Port to retrieve live server data, active map details, and player rosters without relying on command-line tools.
+        </div>
         
         <div class="input-group">
             <select id="gameType">
                 <option value="battlefield2">Project Reality</option>
                 <option value="battlefield2">Battlefield 2</option>
             </select>
-            <input type="text" id="serverIp" placeholder="Server IP" required>
+            <input type="text" id="serverIp" placeholder="Target IP Address" required>
             <input type="number" id="serverPort" placeholder="Query Port" required>
-            <button onclick="startFetching()">Search</button>
+            <button onclick="startFetching()">Verify Server</button>
         </div>
 
-        <div id="loading">Fetching server data...</div>
+        <div id="loading">Establishing connection...</div>
         <div id="error" class="error-box"></div>
 
         <div id="results">
             <div class="server-info">
                 <div class="info-col">
-                    <h2 id="serverName" style="margin:0 0 10px 0; color:#ffffff; font-size: 18px;">-</h2>
-                    <p style="margin:4px 0;"><b>Mode:</b> <span id="serverMode">-</span></p>
-                    <p style="margin:4px 0;"><b>Players:</b> <span id="playerCount">0 / 0</span></p>
+                    <h2 id="serverName" style="margin:0 0 12px 0; color:#ffffff; font-size: 20px;">-</h2>
+                    <p><b>Mode:</b> <span id="serverMode">-</span></p>
+                    <p><b>Players:</b> <span id="playerCount">0 / 0</span></p>
                 </div>
                 <div class="info-col">
-                    <p style="margin:4px 0;"><b>Current Map:</b> <span id="serverMap">-</span></p>
-                    <p style="margin:4px 0; color: #2ea043;"><b>Next Map:</b> <span id="serverNextMap">-</span></p>
+                    <p><b>Current Map:</b> <span id="serverMap" style="color: #c9d1d9;">-</span></p>
+                    <p style="color: #2ea043;"><b>Next Map:</b> <span id="serverNextMap">-</span></p>
                 </div>
             </div>
 
@@ -276,9 +315,12 @@
             let game = document.getElementById("gameType").value;
 
             if(!ip || !port) {
-                showError("Please enter IP and Port.");
+                showError("Please enter a valid IP Address and Query Port.");
                 return;
             }
+
+            // Hide the intro box once a search starts
+            document.getElementById("introBox").style.display = "none";
 
             if (fetchInterval) clearInterval(fetchInterval);
             document.getElementById("loading").style.display = "block";
@@ -306,14 +348,13 @@
                     return;
                 }
 
-                document.getElementById("serverName").innerText = data.name;
-                document.getElementById("serverMap").innerText = data.map;
+                document.getElementById("serverName").innerText = data.name || "Unknown Server";
+                document.getElementById("serverMap").innerText = data.map || "N/A";
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
                 document.getElementById("serverMode").innerText = data.raw?.gametype || "N/A";
                 document.getElementById("team1Name").innerText = data.raw?.bf2_team1 || "Team 1";
                 document.getElementById("team2Name").innerText = data.raw?.bf2_team2 || "Team 2";
 
-                // Smart Next Map logic
                 let nextMap = "N/A";
                 if (data.raw) {
                     if (data.raw.bf2_nextmap && !data.raw.bf2_nextmap.includes("http")) {
@@ -352,7 +393,7 @@
                         let ping = p.raw?.ping ?? p.ping ?? "-";
                         
                         tbody.innerHTML += `<tr>
-                            <td style="text-align:left;">${p.name || 'Unknown'}</td>
+                            <td style="text-align:left; font-weight: 500;">${p.name || 'Unknown'}</td>
                             <td>${score}</td>
                             <td>${kills}</td>
                             <td>${deaths}</td>
@@ -373,7 +414,7 @@
             } catch (err) {
                 if (!isSilent) {
                     document.getElementById("loading").style.display = "none";
-                    showError("Backend connection failed.");
+                    showError("Connection failed. Verify the target IP and Port.");
                 }
             }
         }
