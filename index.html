@@ -218,14 +218,30 @@
             background-color: #1f252e;
         }
 
-        tr.team-total-row {
-            background-color: #161b22 !important;
-            border-top: 2px solid #2ea043;
+        .team-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(46, 160, 67, 0.5);
             font-weight: 700;
+            font-size: 14px;
         }
 
-        tr.team-total-row:hover {
-            background-color: #161b22 !important;
+        .team-total .label {
+            color: #2ea043;
+        }
+
+        .team-total .stats {
+            display: flex;
+            gap: 18px;
+            color: #c9d1d9;
+        }
+
+        .team-total .stats span b {
+            color: #58a6ff;
+            font-weight: 700;
         }
 
         .error-box {
@@ -281,6 +297,7 @@
                 </div>
                 <div class="info-col">
                     <p><b style="color: #8b949e;">Current Map:</b> <span id="serverMap" style="color: #c9d1d9;">-</span></p>
+                    <p><b style="color: #8b949e;">Layer:</b> <span id="serverLayer" style="color: #c9d1d9;">-</span></p>
                     <p><b style="color: #2ea043;">Next Map:</b> <span id="serverNextMap">-</span></p>
                 </div>
             </div>
@@ -300,6 +317,7 @@
                         </thead>
                         <tbody id="team1Table"></tbody>
                     </table>
+                    <div class="team-total" id="team1Total"></div>
                 </div>
                 <div class="team-box">
                     <h3 id="team2Name">Team 2</h3>
@@ -315,6 +333,7 @@
                         </thead>
                         <tbody id="team2Table"></tbody>
                     </table>
+                    <div class="team-total" id="team2Total"></div>
                 </div>
             </div>
         </div>
@@ -411,32 +430,22 @@
             gpm_gungame: "Gungame"
         };
 
-        const GAME_MODE_ABBR = {
-            gpm_cq: "AAS",
-            gpm_insurgency: "INS",
-            gpm_vehicles: "VW",
-            gpm_cnc: "CNC",
-            gpm_skirmish: "Skirmish",
-            gpm_coop: "COOP",
-            gpm_gungame: "Gungame"
+        // Project Reality map layer sizes (player count) -> full layer name,
+        // shown standalone in its own "Layer" field.
+        const LAYER_SIZE_NAMES = {
+            "16": "Infantry",
+            "32": "Alternative",
+            "64": "Standard",
+            "128": "Large"
         };
 
-        // Project Reality map layer sizes (player count) -> layer name / abbreviation
-        const LAYER_SIZE_ABBR = {
-            "16": "Inf",
-            "32": "Alt",
-            "64": "Std",
-            "128": "Lrg"
-        };
+        function getLayerName(mapsize) {
+            const name = LAYER_SIZE_NAMES[mapsize];
+            return name ? `${name} (${mapsize})` : "N/A";
+        }
 
         function getModeName(code) {
             return GAME_MODE_NAMES[code] || code || "N/A";
-        }
-
-        function getLayerLabel(gametype, mapsize) {
-            const modeAbbr = GAME_MODE_ABBR[gametype] || gametype || "";
-            const sizeAbbr = LAYER_SIZE_ABBR[mapsize] || "";
-            return [modeAbbr, sizeAbbr].filter(Boolean).join(" ");
         }
 
         // Effective stat getters - these MUST match between sorting and
@@ -485,13 +494,11 @@
 
                 const gametype = data.raw?.gametype;
                 const mapsize = data.raw?.bf2_mapsize;
-                const layerLabel = getLayerLabel(gametype, mapsize);
-                document.getElementById("serverMap").innerText = layerLabel
-                    ? `${data.map || "N/A"} (${layerLabel})`
-                    : (data.map || "N/A");
 
-                document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
+                document.getElementById("serverMap").innerText = data.map || "N/A";
+                document.getElementById("serverLayer").innerText = getLayerName(mapsize);
                 document.getElementById("serverMode").innerText = getModeName(gametype);
+                document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
                 document.getElementById("team1Name").innerText = data.raw?.bf2_team1 || "Team 1";
                 document.getElementById("team2Name").innerText = data.raw?.bf2_team2 || "Team 2";
 
@@ -520,9 +527,10 @@
                     if (team == 1) t1.push(p); else t2.push(p);
                 });
 
-                function renderRows(players, tbody) {
+                function renderRows(players, tbody, totalEl) {
                     if(players.length === 0) {
                         tbody.innerHTML = "<tr><td colspan='5' style='color:#8b949e; padding: 20px;'>No active players</td></tr>";
+                        totalEl.innerHTML = "";
                         return;
                     }
 
@@ -555,18 +563,21 @@
 
                     const avgPing = Math.round(totalPing / players.length);
 
-                    // Team totals row - mirrors the summary row shown on PRSPY
-                    tbody.innerHTML += `<tr class="team-total-row">
-                        <td style="text-align:left; color:#2ea043;">${players.length} Players</td>
-                        <td style="color: #58a6ff;">${totalScore}</td>
-                        <td>${totalKills}</td>
-                        <td>${totalDeaths}</td>
-                        <td style="color: #8b949e;">${avgPing} ms</td>
-                    </tr>`;
+                    // Team totals - rendered OUTSIDE the table as its own
+                    // divided footer line, mirroring PRSPY's summary row
+                    // but kept visually separate rather than blended in.
+                    totalEl.innerHTML = `
+                        <span class="label">${players.length} Players</span>
+                        <span class="stats">
+                            <span>Score: <b>${totalScore}</b></span>
+                            <span>Kills: <b>${totalKills}</b></span>
+                            <span>Deaths: <b>${totalDeaths}</b></span>
+                            <span>Avg Ping: <b>${avgPing} ms</b></span>
+                        </span>`;
                 }
 
-                renderRows(t1, t1Body);
-                renderRows(t2, t2Body);
+                renderRows(t1, t1Body, document.getElementById("team1Total"));
+                renderRows(t2, t2Body, document.getElementById("team2Total"));
 
                 document.getElementById("results").style.display = "block";
 
