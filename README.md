@@ -22,18 +22,17 @@ To ensure accurate data extraction and correct team parsing, this tool is optimi
 * **Server Verification:** Quickly confirm if an IP and Port belong to the target server.
 * **Team Roster Parsing:** Automatically divides connected players into their respective teams.
 * **Player Statistics:** Extracts and displays live player data including Score, Kills, Deaths, and Ping.
-* **Full Roster Completion:** Automatically supplements the GameSpy3 response with data from the official [PRSPY](https://www.realitymod.com/prspy/) master server list, so servers running more than ~64 players are still shown in full.
+* **Full Roster Completion:** Automatically supplements the GameSpy3 response with data from the [Realitymod Server Info API](https://servers.realitymod.com/api/ServerInfo) (the same master server list PRSPY itself is built on), so servers running more than ~64 players are still shown in full.
 * **Live Updates:** Server data and player lists automatically refresh in the background.
 
 ## Known Limitations
 
 * **Next Map Visibility:** The Next Map string is only displayed if the server explicitly broadcasts it. Vanilla Battlefield 2 servers generally do not provide this variable externally.
-* **Roster Completion Depends on Matching:** Full-roster completion relies on matching the server's hostname against the PRSPY master list. If a server isn't listed on PRSPY (private/unlisted servers) or its hostname changes mid-session, the roster falls back to the standard GameSpy3 response, which is capped at ~64 players.
 
 ## Architecture
 
 * **Frontend:** HTML5, CSS3, Vanilla JavaScript (Canvas Animation).
 * **Backend API:** Node.js, Express.
 * **Query Engine:** node-gamedig (GameSpy3 protocol).
-* **Roster Completion:** [PRSPY API](https://www.realitymod.com/prspy/) — the master server list is fetched and cached for 1 minute to stay well within respectful usage limits, and is only used to fill in players missing from the GameSpy3 response, never to replace it.
+* **Roster Completion:** [Realitymod Server Info API](https://servers.realitymod.com/api/ServerInfo) — the master server list is fetched and cached for 1 minute to stay well within respectful usage limits, and is only used to fill in players missing from the GameSpy3 response, never to replace it.
 * **Deployment:** Vercel.
