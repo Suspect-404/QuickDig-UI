@@ -19,7 +19,9 @@ let prspyCache = {
     data: null,
     timestamp: 0
 };
-const PRSPY_CACHE_TTL = 4000; // ms
+// PRSPY is a shared community resource - we hit it AT MOST once a minute
+// no matter how many clients are polling /api/status or how often.
+const PRSPY_CACHE_TTL = 60 * 1000; // 1 minute
 
 async function getPrspyData() {
     const now = Date.now();
@@ -44,6 +46,25 @@ async function getPrspyData() {
 // Normalize a hostname string for comparison (trim + collapse whitespace).
 function normalizeName(str) {
     return (str || '').trim().replace(/\s+/g, ' ');
+}
+
+// Merge two player lists into one, keeping the GameDig entries as the source
+// of truth (they're the live, freshly-queried set) and only ADDING players
+// from PRSPY that GameDig's UDP response didn't have room to include.
+// This "completes" the roster instead of overwriting it.
+function mergePlayers(gamedigPlayers, prspyPlayers) {
+    const merged = [...gamedigPlayers];
+    const seenNames = new Set(gamedigPlayers.map(p => normalizeName(p.name)));
+
+    for (const p of prspyPlayers) {
+        const key = normalizeName(p.name);
+        if (!seenNames.has(key)) {
+            merged.push(p);
+            seenNames.add(key);
+        }
+    }
+
+    return merged;
 }
 
 // Find the matching server entry in the PRSPY payload by hostname.
@@ -88,9 +109,9 @@ app.get('/api/status', async (req, res) => {
             const match = findPrspyServer(prspyPayload, state.name);
 
             if (match && Array.isArray(match.players)) {
-                players = match.players;
-                numplayers = match.players.length;
-                source = 'prspy';
+                players = mergePlayers(state.players, match.players);
+                numplayers = players.length;
+                source = players.length > state.players.length ? 'gamedig+prspy' : 'gamedig';
             }
         } catch (prspyErr) {
             // PRSPY being unreachable/slow should never break the core feature.
