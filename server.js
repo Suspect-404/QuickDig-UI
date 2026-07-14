@@ -36,7 +36,7 @@ app.get('/api/status', async (req, res) => {
     } catch (error) {
         res.status(500).json({ 
             success: false, 
-            error: 'Connection failed. Verify the IP, Query Port, and Game Type.' 
+            error: 'Connection failed. Verify the IP and Query Port.' 
         });
     }
 });
