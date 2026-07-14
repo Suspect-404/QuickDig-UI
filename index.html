@@ -117,7 +117,7 @@
 
                 document.getElementById("serverName").innerText = data.name;
                 document.getElementById("serverMap").innerText = data.map;
-                document.getElementById("serverNextMap").innerText = data.raw?.bf2_nextmap || "N/A";
+                document.getElementById("serverNextMap").innerText = data.raw?.bf2_sponsorlogo_url || data.raw?.bf2_sponsor || data.raw?.bf2_nextmap || "N/A";
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
                 document.getElementById("serverMode").innerText = data.raw?.gametype || "N/A";
                 document.getElementById("team1Name").innerText = data.raw?.bf2_team1 || "Team 1";
