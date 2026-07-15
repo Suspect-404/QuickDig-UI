@@ -127,6 +127,8 @@ app.get('/api/status', async (req, res) => {
             maxplayers: state.maxplayers,
             players,
             raw: state.raw,
+            connect: state.connect,       // "ip:port" where port is the REAL game/join port (per gamedig docs)
+            queryPort: state.queryPort,   // the port the query itself was sent to (what the user typed in)
             playerSource: source // "prspy" or "gamedig" - useful for debugging/UI badge
         });
     } catch (error) {
