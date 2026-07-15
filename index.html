@@ -294,17 +294,11 @@
         <div id="error" class="error-box"></div>
 
         <div id="results">
-            <div id="communityBanner" style="display:none; margin-bottom: 20px; text-align:center;">
-                <img id="communityBannerImg" src="" alt="Community Banner" onerror="this.parentElement.style.display='none'" style="max-width:100%; max-height:90px; border-radius:6px; border:1px solid #30363d;">
-            </div>
-
             <div class="server-info">
                 <div class="info-col">
-                    <h2 id="serverName" style="margin:0 0 12px 0; color:#ffffff; font-size: 20px;">-
-                        <span id="lockedBadge" style="display:none; font-size:12px; font-weight:700; color:#f85149; border:1px solid #f85149; border-radius:4px; padding:2px 8px; vertical-align:middle; margin-left:8px;">🔒 LOCKED</span>
-                    </h2>
+                    <h2 id="serverName" style="margin:0 0 12px 0; color:#ffffff; font-size: 20px;">-</h2>
                     <p><b style="color: #2ea043;">Next Map:</b> <span id="serverNextMap">-</span></p>
-                    <p><b style="color: #8b949e;">Players:</b> <span id="playerCount" style="color: #58a6ff; font-weight: bold;">0 / 0</span> <span id="reservedSlotsInfo" style="color:#8b949e; font-size: 13px;"></span></p>
+                    <p><b style="color: #8b949e;">Players:</b> <span id="playerCount" style="color: #58a6ff; font-weight: bold;">0 / 0</span></p>
                 </div>
                 <div class="info-col">
                     <p><b style="color: #8b949e;">Current Map:</b> <span id="serverMap" style="color: #c9d1d9;">-</span></p>
@@ -510,26 +504,6 @@
                 document.getElementById("serverMode").innerText = getModeName(gametype);
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
 
-                // Reserved slots (bf2_reservedslots) - only show the note if the server actually reserves any
-                const reserved = parseInt(data.raw?.bf2_reservedslots, 10) || 0;
-                document.getElementById("reservedSlotsInfo").innerText = reserved > 0
-                    ? `(${reserved} reserved)`
-                    : "";
-
-                // Locked badge - GameSpy3's "password" flag ("1" = passworded)
-                const isLocked = data.raw?.password === "1" || data.raw?.password === 1;
-                document.getElementById("lockedBadge").style.display = isLocked ? "inline-block" : "none";
-
-                // Community banner - only render if the server actually set one and it looks like a real URL
-                const bannerUrl = data.raw?.bf2_sponsorlogo_url;
-                const bannerBox = document.getElementById("communityBanner");
-                const bannerImg = document.getElementById("communityBannerImg");
-                if (bannerUrl && /^https?:\/\//i.test(bannerUrl)) {
-                    bannerImg.src = bannerUrl;
-                    bannerBox.style.display = "block";
-                } else {
-                    bannerBox.style.display = "none";
-                }
                 document.getElementById("team1Name").innerText = data.raw?.bf2_team1 || "Team 1";
                 document.getElementById("team2Name").innerText = data.raw?.bf2_team2 || "Team 2";
 
