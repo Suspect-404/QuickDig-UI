@@ -297,6 +297,11 @@
             <div class="server-info">
                 <div class="info-col">
                     <h2 id="serverName" style="margin:0 0 12px 0; color:#ffffff; font-size: 20px;">-</h2>
+                    <p>
+                        <b style="color: #8b949e;">Address:</b>
+                        <span id="serverAddress" style="color:#c9d1d9;">-</span>
+                        <button type="button" id="copyAddressBtn" onclick="copyAddress()" title="Copy connect address" style="margin-left:8px; padding:2px 8px; font-size:11px; text-transform:none; border-radius:4px; background:#161b22; border:1px solid #30363d; color:#8b949e; cursor:pointer;">Copy</button>
+                    </p>
                     <p><b style="color: #2ea043;">Next Map:</b> <span id="serverNextMap">-</span></p>
                     <p><b style="color: #8b949e;">Players:</b> <span id="playerCount" style="color: #58a6ff; font-weight: bold;">0 / 0</span></p>
                 </div>
@@ -495,6 +500,7 @@
                 }
 
                 document.getElementById("serverName").innerText = data.name || "Unknown Server";
+                document.getElementById("serverAddress").innerText = `${ip}:${port}`;
 
                 const gametype = data.raw?.gametype;
                 const mapsize = data.raw?.bf2_mapsize;
@@ -602,7 +608,28 @@
         function hideError() {
             document.getElementById("error").style.display = "none";
         }
+
+        function copyAddress() {
+            const text = document.getElementById("serverAddress").innerText;
+            const btn = document.getElementById("copyAddressBtn");
+            if (!text || text === "-") return;
+
+            const flash = (label) => {
+                if (!btn) return;
+                const original = btn.innerText;
+                btn.innerText = label;
+                setTimeout(() => { btn.innerText = original; }, 1500);
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => flash("Copied!"))
+                    .catch(() => flash("Failed"));
+            } else {
+                // Clipboard API unavailable (older browser / insecure context) - fail silently, no crash
+                flash("Failed");
+            }
+        }
     </script>
 </body>
 </html>
-
