@@ -1,4 +1,4 @@
- # QuickDig UI
+# QuickDig UI
 
 A fast, lightweight, and open-source web interface designed to verify game server status, network addresses, and live player rosters.
 
@@ -8,7 +8,7 @@ A fast, lightweight, and open-source web interface designed to verify game serve
 
 QuickDig UI is built for server administrators and community developers who need a quick way to verify a target server's exact IP, Query Port, and live connection status. Instead of relying on manual command-line queries, this tool provides a direct visual confirmation of the server's backend data and active player connections.
 
-This project is **not** a replacement for [PRSPY](https://www.realitymod.com/prspy/) — PRSPY remains the official, comprehensive server/player browser for the Project Reality community. QuickDig UI is a small, focused, login-free companion tool for quickly spot-checking a *specific* server by IP/Port, and it borrows from PRSPY's public master list only to complete a roster the GameSpy3 protocol would otherwise truncate.
+This project is **not** a replacement for [PRSPY](https://www.realitymod.com/prspy/). PRSPY remains the official, comprehensive server/player browser for the Project Reality community. QuickDig UI is a small, focused, login-free companion tool for quickly spot-checking a *specific* server by IP/Port, and it borrows from PRSPY's public master list only to complete a roster the GameSpy3 protocol would otherwise truncate.
 
 ## Supported Games
 
@@ -34,5 +34,5 @@ To ensure accurate data extraction and correct team parsing, this tool is optimi
 * **Frontend:** HTML5, CSS3, Vanilla JavaScript (Canvas Animation).
 * **Backend API:** Node.js, Express.
 * **Query Engine:** node-gamedig (GameSpy3 protocol).
-* **Roster Completion:** [Realitymod Server Info API](https://servers.realitymod.com/api/ServerInfo) — the master server list is fetched and cached for 1 minute to stay well within respectful usage limits, and is only used to fill in players missing from the GameSpy3 response, never to replace it.
+* **Roster Completion:** [Realitymod Server Info API](https://servers.realitymod.com/api/ServerInfo). The master server list is fetched and cached for 1 minute to stay well within respectful usage limits, and is only used to fill in players missing from the GameSpy3 response, never to replace it.
 * **Deployment:** Vercel.
