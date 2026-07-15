@@ -304,8 +304,12 @@
                         <span id="lockedBadge" style="display:none; font-size:12px; font-weight:700; color:#f85149; border:1px solid #f85149; border-radius:4px; padding:2px 8px; vertical-align:middle; margin-left:8px;">🔒 LOCKED</span>
                     </h2>
                     <p>
-                        <b style="color: #8b949e;">Address:</b>
-                        <span id="serverAddress" style="color:#c9d1d9;">-</span>
+                        <b style="color: #8b949e;">IP Address:</b>
+                        <span id="serverIpDisplay" style="color:#c9d1d9;">-</span>
+                    </p>
+                    <p>
+                        <b style="color: #8b949e;">Game Port:</b>
+                        <span id="serverGamePort" style="color:#c9d1d9;">-</span>
                         <button type="button" id="copyAddressBtn" onclick="copyAddress()" title="Copy connect address" style="margin-left:8px; padding:2px 8px; font-size:11px; text-transform:none; border-radius:4px; background:#161b22; border:1px solid #30363d; color:#8b949e; cursor:pointer;">Copy</button>
                     </p>
                     <p><b style="color: #2ea043;">Next Map:</b> <span id="serverNextMap">-</span></p>
@@ -506,7 +510,20 @@
                 }
 
                 document.getElementById("serverName").innerText = data.name || "Unknown Server";
-                document.getElementById("serverAddress").innerText = `${ip}:${port}`;
+
+                // The "connect" field from gamedig is "ip:port" where port is the
+                // REAL game/join port - NOT the query port the user typed in.
+                // Fall back to the typed-in port only if gamedig didn't supply one.
+                let realGamePort = port;
+                if (data.connect && data.connect.includes(":")) {
+                    const parts = data.connect.split(":");
+                    const parsedPort = parts[parts.length - 1];
+                    if (parsedPort && !isNaN(parsedPort)) {
+                        realGamePort = parsedPort;
+                    }
+                }
+                document.getElementById("serverIpDisplay").innerText = ip;
+                document.getElementById("serverGamePort").innerText = realGamePort;
 
                 const gametype = data.raw?.gametype;
                 const mapsize = data.raw?.bf2_mapsize;
@@ -637,9 +654,12 @@
         }
 
         function copyAddress() {
-            const text = document.getElementById("serverAddress").innerText;
+            const ipText = document.getElementById("serverIpDisplay").innerText;
+            const portText = document.getElementById("serverGamePort").innerText;
             const btn = document.getElementById("copyAddressBtn");
-            if (!text || text === "-") return;
+            if (!ipText || ipText === "-" || !portText || portText === "-") return;
+
+            const text = `${ipText}:${portText}`;
 
             const flash = (label) => {
                 if (!btn) return;
