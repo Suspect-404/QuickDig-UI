@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuickDig UI</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
 
     
     <meta name="description" content="A lightweight, login-free web interface to instantly check game server status, players, and ping.">
@@ -175,6 +176,61 @@
             overflow-x: auto;
         }
 
+        .details-box {
+            background: rgba(13, 17, 23, 0.9);
+            padding: 18px 22px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            margin-top: 20px;
+        }
+
+        .details-box h3 {
+            margin: 0 0 14px 0;
+            color: #58a6ff;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 10px 24px;
+        }
+
+        .details-grid .detail-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+        }
+
+        .details-grid .detail-item b {
+            color: #8b949e;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .details-grid .detail-item span {
+            color: #c9d1d9;
+            text-align: right;
+        }
+
+        .bot-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            color: #8b949e;
+            border: 1px solid #30363d;
+            border-radius: 3px;
+            padding: 1px 5px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
         .team-box h3 {
             text-align: center;
             margin-top: 0;
@@ -294,11 +350,26 @@
         <div id="error" class="error-box"></div>
 
         <div id="results">
+            <div id="communityBanner" style="display:none; margin-bottom: 20px; text-align:center;">
+                <img id="communityBannerImg" src="" alt="Community Banner" onerror="this.parentElement.style.display='none'" style="max-width:100%; max-height:90px; border-radius:6px; border:1px solid #30363d;">
+            </div>
+
             <div class="server-info">
                 <div class="info-col">
-                    <h2 id="serverName" style="margin:0 0 12px 0; color:#ffffff; font-size: 20px;">-</h2>
+                    <h2 id="serverName" style="margin:0 0 12px 0; color:#ffffff; font-size: 20px;">-
+                        <span id="lockedBadge" style="display:none; font-size:12px; font-weight:700; color:#f85149; border:1px solid #f85149; border-radius:4px; padding:2px 8px; vertical-align:middle; margin-left:8px;">🔒 LOCKED</span>
+                    </h2>
+                    <p>
+                        <b style="color: #8b949e;">IP Address:</b>
+                        <span id="serverIpDisplay" style="color:#c9d1d9;">-</span>
+                    </p>
+                    <p>
+                        <b style="color: #8b949e;">Game Port:</b>
+                        <span id="serverGamePort" style="color:#c9d1d9;">-</span>
+                        <button type="button" id="copyAddressBtn" onclick="copyAddress()" title="Copy connect address" style="margin-left:8px; padding:2px 8px; font-size:11px; text-transform:none; border-radius:4px; background:#161b22; border:1px solid #30363d; color:#8b949e; cursor:pointer;">Copy</button>
+                    </p>
                     <p><b style="color: #2ea043;">Next Map:</b> <span id="serverNextMap">-</span></p>
-                    <p><b style="color: #8b949e;">Players:</b> <span id="playerCount" style="color: #58a6ff; font-weight: bold;">0 / 0</span></p>
+                    <p><b style="color: #8b949e;">Players:</b> <span id="playerCount" style="color: #58a6ff; font-weight: bold;">0 / 0</span> <span id="reservedSlotsInfo" style="color:#8b949e; font-size: 13px;"></span></p>
                 </div>
                 <div class="info-col">
                     <p><b style="color: #8b949e;">Current Map:</b> <span id="serverMap" style="color: #c9d1d9;">-</span></p>
@@ -340,6 +411,11 @@
                     </table>
                     <div class="team-total" id="team2Total"></div>
                 </div>
+            </div>
+
+            <div class="details-box" id="serverDetailsBox" style="display:none;">
+                <h3>Server Details</h3>
+                <div class="details-grid" id="serverDetailsGrid"></div>
             </div>
         </div>
     </div>
@@ -460,6 +536,100 @@
         function getDeaths(p) { return Number(p.raw?.death ?? p.death ?? p.raw?.deaths ?? p.deaths ?? 0); }
         function getPing(p) { return Number(p.raw?.ping ?? p.ping ?? 0); }
 
+        // "AIBot" flag from GameSpy3: "1"/1/true = bot, "0"/0/false/missing = human
+        function isBot(p) {
+            const flag = p.raw?.AIBot ?? p.AIBot;
+            return flag === "1" || flag === 1 || flag === true;
+        }
+
+        // ---------------------------------------------------------------
+        // Server Details panel - a data-driven list so it degrades safely
+        // if a field is missing (different game/mod, older server, etc.)
+        // rather than assuming every field always exists.
+        // ---------------------------------------------------------------
+        function yesNo(v) {
+            return (v === "1" || v === 1 || v === true) ? "Yes" : "No";
+        }
+        function formatSeconds(v) {
+            const n = parseInt(v, 10);
+            if (isNaN(n) || n <= 0) return "No limit";
+            return `${Math.round(n / 60)} min`;
+        }
+        function formatLimit(v) {
+            return (!v || v === "0" || v === 0) ? "No limit" : String(v);
+        }
+        function formatPercent(v) {
+            return (v === undefined || v === null || v === "") ? "-" : `${v}%`;
+        }
+        function formatVehicles(v) {
+            return yesNo(v) === "Yes" ? "Disabled" : "Enabled";
+        }
+
+        const DETAIL_FIELDS = [
+            { key: "gamever", label: "Game Version" },
+            { key: "bf2_os", label: "Server OS" },
+            { key: "queryPortRaw", label: "Query Port" }, // filled in manually below, not from raw
+            { key: "bf2_dedicated", label: "Dedicated", fmt: yesNo },
+            { key: "bf2_ranked", label: "Ranked", fmt: yesNo },
+            { key: "bf2_anticheat", label: "Anticheat (PunkBuster)", fmt: yesNo },
+            { key: "bf2_autobalanced", label: "Auto-Balance", fmt: yesNo },
+            { key: "bf2_friendlyfire", label: "Friendly Fire", fmt: yesNo },
+            { key: "bf2_tkmode", label: "TK Punish Mode" },
+            { key: "bf2_voip", label: "In-Game VOIP", fmt: yesNo },
+            { key: "bf2_pure", label: "Pure Server", fmt: yesNo },
+            { key: "bf2_globalunlocks", label: "Global Unlocks", fmt: yesNo },
+            { key: "bf2_novehicles", label: "Vehicles", fmt: formatVehicles },
+            { key: "bf2_scorelimit", label: "Score Limit", fmt: formatLimit },
+            { key: "bf2_ticketratio", label: "Ticket Ratio", fmt: formatPercent },
+            { key: "bf2_teamratio", label: "Team Ratio", fmt: formatPercent },
+            { key: "bf2_fps", label: "Server FPS" },
+            { key: "timelimit", label: "Time Limit", fmt: formatSeconds },
+            { key: "bf2_reservedslots", label: "Reserved Slots", fmt: formatLimit },
+        ];
+
+        // Co-op bot fields only make sense on co-op servers - only shown if present & non-empty
+        const COOP_DETAIL_FIELDS = [
+            { key: "bf2_coopbotcount", label: "Co-op Bot Count" },
+            { key: "bf2_coopbotratio", label: "Co-op Bot Ratio", fmt: formatPercent },
+            { key: "bf2_coopbotdiff", label: "Co-op Bot Difficulty" },
+        ];
+
+        function renderServerDetails(data) {
+            const box = document.getElementById("serverDetailsBox");
+            const grid = document.getElementById("serverDetailsGrid");
+            const raw = data.raw || {};
+
+            let rowsHtml = "";
+
+            const addRow = (label, rawValue, fmt) => {
+                if (rawValue === undefined || rawValue === null || rawValue === "") return;
+                const displayValue = fmt ? fmt(rawValue) : String(rawValue);
+                rowsHtml += `<div class="detail-item"><b>${label}</b><span>${displayValue}</span></div>`;
+            };
+
+            DETAIL_FIELDS.forEach(f => {
+                if (f.key === "queryPortRaw") {
+                    addRow(f.label, data.queryPort);
+                } else {
+                    addRow(f.label, raw[f.key], f.fmt);
+                }
+            });
+
+            // Only show the co-op group if the server actually reports co-op bot data
+            const hasCoopData = COOP_DETAIL_FIELDS.some(f => raw[f.key] !== undefined && raw[f.key] !== null && raw[f.key] !== "");
+            if (hasCoopData) {
+                COOP_DETAIL_FIELDS.forEach(f => addRow(f.label, raw[f.key], f.fmt));
+            }
+
+            if (rowsHtml) {
+                grid.innerHTML = rowsHtml;
+                box.style.display = "block";
+            } else {
+                grid.innerHTML = "";
+                box.style.display = "none";
+            }
+        }
+
         function startFetching() {
             let ip = document.getElementById("serverIp").value.trim();
             let port = document.getElementById("serverPort").value.trim();
@@ -496,6 +666,20 @@
 
                 document.getElementById("serverName").innerText = data.name || "Unknown Server";
 
+                // The "connect" field from gamedig is "ip:port" where port is the
+                // REAL game/join port - NOT the query port the user typed in.
+                // Fall back to the typed-in port only if gamedig didn't supply one.
+                let realGamePort = port;
+                if (data.connect && data.connect.includes(":")) {
+                    const parts = data.connect.split(":");
+                    const parsedPort = parts[parts.length - 1];
+                    if (parsedPort && !isNaN(parsedPort)) {
+                        realGamePort = parsedPort;
+                    }
+                }
+                document.getElementById("serverIpDisplay").innerText = ip;
+                document.getElementById("serverGamePort").innerText = realGamePort;
+
                 const gametype = data.raw?.gametype;
                 const mapsize = data.raw?.bf2_mapsize;
 
@@ -503,6 +687,27 @@
                 document.getElementById("serverLayer").innerText = getLayerName(mapsize);
                 document.getElementById("serverMode").innerText = getModeName(gametype);
                 document.getElementById("playerCount").innerText = `${data.numplayers} / ${data.maxplayers}`;
+
+                // Reserved slots (bf2_reservedslots) - only show the note if the server actually reserves any
+                const reserved = parseInt(data.raw?.bf2_reservedslots, 10) || 0;
+                document.getElementById("reservedSlotsInfo").innerText = reserved > 0
+                    ? `(${reserved} reserved)`
+                    : "";
+
+                // Locked badge - GameSpy3's "password" flag ("1" = passworded)
+                const isLocked = data.raw?.password === "1" || data.raw?.password === 1;
+                document.getElementById("lockedBadge").style.display = isLocked ? "inline-block" : "none";
+
+                // Community banner - only render if the server actually set one and it looks like a real URL
+                const bannerUrl = data.raw?.bf2_sponsorlogo_url;
+                const bannerBox = document.getElementById("communityBanner");
+                const bannerImg = document.getElementById("communityBannerImg");
+                if (bannerUrl && typeof bannerUrl === "string" && /^https?:\/\//i.test(bannerUrl)) {
+                    bannerImg.src = bannerUrl;
+                    bannerBox.style.display = "block";
+                } else {
+                    bannerBox.style.display = "none";
+                }
 
                 document.getElementById("team1Name").innerText = data.raw?.bf2_team1 || "Team 1";
                 document.getElementById("team2Name").innerText = data.raw?.bf2_team2 || "Team 2";
@@ -544,13 +749,15 @@
                     // sorted by a different/undefined field.
                     players.sort((a, b) => getScore(b) - getScore(a));
 
-                    let totalScore = 0, totalKills = 0, totalDeaths = 0, totalPing = 0;
+                    let totalScore = 0, totalKills = 0, totalDeaths = 0, totalPing = 0, botCount = 0;
 
                     players.forEach(p => {
                         const score = getScore(p);
                         const kills = getKills(p);
                         const deaths = getDeaths(p);
                         const ping = getPing(p);
+                        const bot = isBot(p);
+                        if (bot) botCount++;
 
                         totalScore += score;
                         totalKills += kills;
@@ -558,7 +765,7 @@
                         totalPing += ping;
 
                         tbody.innerHTML += `<tr>
-                            <td style="text-align:left; font-weight: 500; color: #e6edf3;">${p.name || 'Unknown'}</td>
+                            <td style="text-align:left; font-weight: 500; color: #e6edf3;">${p.name || 'Unknown'}${bot ? '<span class="bot-tag">BOT</span>' : ''}</td>
                             <td style="color: #58a6ff;">${score}</td>
                             <td>${kills}</td>
                             <td>${deaths}</td>
@@ -567,12 +774,13 @@
                     });
 
                     const avgPing = Math.round(totalPing / players.length);
+                    const humanCount = players.length - botCount;
 
                     // Team totals - rendered OUTSIDE the table as its own
                     // divided footer line, mirroring PRSPY's summary row
                     // but kept visually separate rather than blended in.
                     totalEl.innerHTML = `
-                        <span class="label">${players.length} Players</span>
+                        <span class="label">${players.length} Players${botCount > 0 ? ` (${humanCount} Human · ${botCount} Bot)` : ''}</span>
                         <span class="stats">
                             <span>Score: <b>${totalScore}</b></span>
                             <span>Kills: <b>${totalKills}</b></span>
@@ -583,6 +791,7 @@
 
                 renderRows(t1, t1Body, document.getElementById("team1Total"));
                 renderRows(t2, t2Body, document.getElementById("team2Total"));
+                renderServerDetails(data);
 
                 document.getElementById("results").style.display = "block";
 
@@ -601,6 +810,31 @@
         }
         function hideError() {
             document.getElementById("error").style.display = "none";
+        }
+
+        function copyAddress() {
+            const ipText = document.getElementById("serverIpDisplay").innerText;
+            const portText = document.getElementById("serverGamePort").innerText;
+            const btn = document.getElementById("copyAddressBtn");
+            if (!ipText || ipText === "-" || !portText || portText === "-") return;
+
+            const text = `${ipText}:${portText}`;
+
+            const flash = (label) => {
+                if (!btn) return;
+                const original = btn.innerText;
+                btn.innerText = label;
+                setTimeout(() => { btn.innerText = original; }, 1500);
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => flash("Copied!"))
+                    .catch(() => flash("Failed"));
+            } else {
+                // Clipboard API unavailable (older browser / insecure context) - fail silently, no crash
+                flash("Failed");
+            }
         }
     </script>
 </body>
