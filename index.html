@@ -798,6 +798,8 @@
             } catch (err) {
                 if (!isSilent) {
                     document.getElementById("loading").style.display = "none";
+                    // TEMPORARY DIAGNOSTIC - remove after we find the real bug
+                    alert("DEBUG - real error was:\n\n" + (err && err.stack ? err.stack : err));
                     showError("Connection failed. Verify the target IP and Port.");
                 }
             }
